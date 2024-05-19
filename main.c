@@ -63,6 +63,7 @@ void sig_handler(int signo) {
         }
 
         printf("Segmentation Fault.\n");
+        fflush(stdout);
         restore_terminal_mode(&old_tio);
 
         exit(1);
@@ -72,11 +73,13 @@ void sig_handler(int signo) {
 int main() {
     // Intercept SIGINT so we can shut down graphics loops.
     if (signal(SIGINT, sig_handler) == SIG_ERR) {
-         printf("\ncan't catch SIGINT\n");
+        printf("\ncan't catch SIGINT\n");
+        return 1;
     }
 
     if (signal(SIGSEGV, sig_handler) == SIG_ERR) {
         printf("\ncan't catch SIGSEGV\n");
+        return 1;
     }
 
     tcgetattr(STDIN_FILENO, &old_tio);
@@ -90,26 +93,15 @@ int main() {
    	// This line enables graphics mode on the tty.
     if (ioctl(STDIN_FILENO, KDSETMODE, KD_GRAPHICS) == -1) {
     	printf("[!] Error: could not set KD_GRAPHICS\n");
-		return 1;
+        return 1;
     }
 
     int count = 0;
-    int colors[] = {0xFFFF00, 0xFF0000, 0x00FF00, 0x0000FF, 0x00FFFF};
-    int color_size = 5;
-
+    const int colors[] = {0xFFFF00, 0xFF0000, 0x00FF00, 0x0000FF, 0x00FFFF};
+    const int color_size = 5;
 
     if(context != NULL){
-//        image_t * jpegImage = read_jpeg_file("./nyc.jpg");
-//        image_t * scaledBackgroundImage = scale(jpegImage, context->width, context->height);
         char buf[256] = "Ego in the houseee gimme the musicc";
-
-//        clear_context(context);
-//        draw_image(0, 0, scaledBackgroundImage, context);
-//        draw_rect(-100, -100, 200, 200, context, 0xFF0000);
-//        draw_rect(context->width - 100, context->height - 100, 200, 200, context, 0xFFFF00);
-//        draw_rect(context->width - 100, -100, 200, 200, context, 0x00FF00);
-//        draw_rect(-100, context->height - 100, 200, 200, context, 0x0000FF);
-//        draw_rect(context->width / 2 - 200, context->height / 2 - 200, 400, 400, context, 0x00FFFF);
 
         int time_ms = 0;
 
@@ -121,14 +113,16 @@ int main() {
             draw_rect(-100, context->height - 100, 200, 200, context, colors[(count + 3) % color_size]);
             draw_rect(context->width / 2 - 200, context->height / 2 - 200, 400, 400, context, colors[(count + 4) % color_size]);
 //            draw_string(200, 200, buf, fontmap, context);
-            int val = getchar();
+            const int val = getchar();
             const char concstr[2] = { val, 0 };
 
             // we got a keypress
             if (val != -1) {
                 if (val == 127) buf[strlen(buf) - 1] = 0;
-                else strcat(buf, concstr);
+                else if (strlen(buf) < 255) strcat(buf, concstr);
             }
+
+            if (strlen(buf) == 255) draw_string(200, 170, "Buffer full!", fontmap, context);
 
             // draw the text, break it into line strings.
             char bufcpy[256];
@@ -153,8 +147,6 @@ int main() {
             }
         }
 
-//        image_free(jpegImage);
-//        image_free(scaledBackgroundImage);
         fontmap_free(fontmap);
         context_release(context);
     }
