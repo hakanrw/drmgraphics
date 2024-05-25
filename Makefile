@@ -1,6 +1,6 @@
-CC=gcc
+CC?=gcc
 CCFLAGS=-g -std=c99 -Wall -DDEBUG
-LFLAGS=-lm -lpng -ljpeg
+LFLAGS=-lm # -lpng -ljpeg
 BINFILE=fbdemo
 
 all: fbdemo
@@ -8,8 +8,8 @@ all: fbdemo
 %.o: %.c
 	$(CC) -c $(CFLAGS) $^ -o $@
 
-fbdemo: main.o draw.o font.o img-png.o img-jpeg.o
+fbdemo: main.o draw.o font.o # img-png.o img-jpeg.o
 	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
 
-clean: 
+clean:
 	rm -rf *.o $(BINFILE)

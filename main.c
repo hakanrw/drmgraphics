@@ -21,8 +21,8 @@
 
 #include "font.h"
 #include "draw.h"
-#include "img-png.h"
-#include "img-jpeg.h"
+//#include "img-png.h"
+//#include "img-jpeg.h"
 
 int runflag = 1;
 int ttyfd = -1;
