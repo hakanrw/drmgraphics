@@ -104,7 +104,7 @@ int main() {
         int time_ms = 0;
 
         while (runflag) {
-//            clear_context(context);
+            clear_context(context);
             draw_rect(-100, -100, 200, 200, context, colors[count]);
 			set_pixel(5, 5, context, colors[count]);
             draw_rect(context->width - 100, context->height - 100, 200, 200, context, colors[(count + 1) % color_size]);
@@ -117,7 +117,7 @@ int main() {
 
             // we got a keypress
             if (val != -1) {
-				printf("%d\n", val);
+//				printf("%d\n", val);
                 if (val == 127 || val == 8) buf[strlen(buf) - 1] = 0;
                 else if (strlen(buf) < 255) strcat(buf, concstr);
             }
