@@ -11,7 +11,7 @@ typedef struct {
   int * data;
   int width;
   int height;
-  char * fb_name;
+  const char * fb_name;
   int fb_file_desc;
 } context_t;
 

@@ -6,10 +6,10 @@ BINFILE=fbdemo
 all: fbdemo
 
 %.o: %.c
-	$(CC) -c $(CFLAGS) $^ -o $@
+	$(CC) -c `pkg-config --cflags --libs libdrm` $(CFLAGS) $^ -o $@
 
 fbdemo: main.o draw.o font.o # img-png.o img-jpeg.o
-	$(CC) $(CFLAGS) $(LFLAGS) $^ -o $@
+	$(CC) `pkg-config --cflags --libs libdrm` $(CFLAGS) $(LFLAGS) $^ -o $@
 
 clean:
 	rm -rf *.o $(BINFILE)

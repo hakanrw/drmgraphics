@@ -9,15 +9,15 @@
 #include <unistd.h>
 #include <math.h>
 
-#include <linux/input.h>
-#include <linux/fb.h>
-#include <linux/vt.h>
+//#include <linux/input.h>
+//#include <linux/fb.h>
+//#include <linux/vt.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
-#include <sys/kd.h>
+//#include <sys/kd.h>
 
 #include "font.h"
 #include "draw.h"
@@ -25,7 +25,9 @@
 //#include "img-jpeg.h"
 
 int runflag = 1;
-int ttyfd = -1;
+int fd = -1;
+
+context_t* context;
 
 struct termios old_tio;
 
@@ -56,15 +58,11 @@ void sig_handler(int signo) {
 
     // If we segfault in graphics mode, we can't get out.
     if (signo == SIGSEGV) {
-        if (ttyfd == -1) {
-            printf("[!] Error: could not open the tty\n");
-        } else {
-            ioctl(ttyfd, KDSETMODE, KD_TEXT);
-        }
 
         printf("Segmentation Fault.\n");
         fflush(stdout);
         restore_terminal_mode(&old_tio);
+		context_release(context);
 
         exit(1);
     }
@@ -85,16 +83,16 @@ int main() {
     tcgetattr(STDIN_FILENO, &old_tio);
     set_noncanonical_nonblocking_mode(&old_tio);
 
-    context_t * context = context_create();
+    context = context_create();
     fontmap_t * fontmap = fontmap_default();
     printf("[+] Graphics Context: 0x%x\n", context);
 
     // Attempt to set graphics mode
    	// This line enables graphics mode on the tty.
-    if (ioctl(STDIN_FILENO, KDSETMODE, KD_GRAPHICS) == -1) {
-    	printf("[!] Error: could not set KD_GRAPHICS\n");
-        return 1;
-    }
+//    if (ioctl(STDIN_FILENO, KDSETMODE, KD_GRAPHICS) == -1) {
+//    	printf("[!] Error: could not set KD_GRAPHICS\n");
+//        return 1;
+//    }
 
     int count = 0;
     const int colors[] = {0xFFFF00, 0xFF0000, 0x00FF00, 0x0000FF, 0x00FFFF};
@@ -106,8 +104,9 @@ int main() {
         int time_ms = 0;
 
         while (runflag) {
-            clear_context(context);
+//            clear_context(context);
             draw_rect(-100, -100, 200, 200, context, colors[count]);
+			set_pixel(5, 5, context, colors[count]);
             draw_rect(context->width - 100, context->height - 100, 200, 200, context, colors[(count + 1) % color_size]);
             draw_rect(context->width - 100, -100, 200, 200, context, colors[(count + 2) % color_size]);
             draw_rect(-100, context->height - 100, 200, 200, context, colors[(count + 3) % color_size]);
@@ -118,7 +117,8 @@ int main() {
 
             // we got a keypress
             if (val != -1) {
-                if (val == 127) buf[strlen(buf) - 1] = 0;
+				printf("%d\n", val);
+                if (val == 127 || val == 8) buf[strlen(buf) - 1] = 0;
                 else if (strlen(buf) < 255) strcat(buf, concstr);
             }
 
@@ -151,7 +151,7 @@ int main() {
         context_release(context);
     }
 
-    ioctl(STDIN_FILENO, KDSETMODE, KD_TEXT);
+//    ioctl(STDIN_FILENO, KDSETMODE, KD_TEXT);
     restore_terminal_mode(&old_tio);
 
     printf("[+] Shutdown successful.\n");
