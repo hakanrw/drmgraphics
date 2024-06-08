@@ -1032,8 +1032,11 @@ context_t * context_create() {
 
 	/* open the DRM device */
 	ret = drmmodeset_open(&fd, card);
-	if (ret)
-		goto out_return;
+	if (ret) {
+		card = "/dev/dri/card1"; // fallback
+		ret = drmmodeset_open(&fd, card);
+		if (ret) goto out_return;
+	}
 
 	/* prepare all connectors and CRTCs */
 	ret = drmmodeset_prepare(fd);
